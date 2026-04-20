@@ -152,6 +152,38 @@ Score       Meaning
 ≈ 1         Fair price
 > 1         Overpriced
 
+## Comparison rule-based vs ml models
+
+### 1. Rule-based model
+- Uses handcrafted heuristics
+- Filters properties based on:
+  - budget constraints
+  - minimum surface
+  - price per m² normalization
+- Produces a score based on:
+  - low price per m²
+  - larger surface preference
+
+Interpretable and deterministic approach
+
+
+### 2. Machine Learning model
+- Uses Random Forest regression
+- Predicts expected price per m²
+- Computes investment score:
+
+score = actual_price_m2 / predicted_price_m2
+
+Detects statistical anomalies rather than explicit rules
+
+
+### 3. Key insight
+
+Both models operate on the same filtered dataset, but:
+- Rule-based model relies on explicit human logic
+- ML model learns patterns from historical data
+
+They often converge on similar property subsets, showing that filtering dominates selection more than modeling differences.
 
 ## Limitations
 
