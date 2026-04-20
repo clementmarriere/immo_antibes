@@ -185,6 +185,12 @@ Both models operate on the same filtered dataset, but:
 
 They often converge on similar property subsets, showing that filtering dominates selection more than modeling differences.
 
+### Key findings (results)
+- Both models select highly similar subsets of properties (high overlap in top 20 results)
+- Rule-based model tends to favor higher-priced / higher-value properties
+- ML model tends to highlight lower-priced statistical anomalies
+- The main limiting factor is not the model, but feature availability (especially location data)
+
 ## Limitations
 
 Current model uses only:
