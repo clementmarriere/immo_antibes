@@ -1,8 +1,6 @@
-# immo_antibes
+# Real Estate Investment Analysis in Antibes
 
-🏡 Real Estate Investment Analysis — Antibes
-
-📌 Overview
+## Overview
 
 This project analyzes real estate transactions in Antibes using DVF (Demande de Valeurs Foncières) data.
 
@@ -14,7 +12,7 @@ The goal is to:
 	•	Machine Learning (anomaly detection on price/m²)
 
 
-📂 Project Structure
+## Project Structure
 
 api/                    # (future) API to expose results
 
@@ -51,18 +49,17 @@ src/
 └── scoring/                       # (future) scoring logic
 
 
-🔄 Data Pipeline
+## Data Pipeline
 
-1. Raw Data
+### 1. Raw Data
 
 File:
 data/raw/ValeursFoncieres-2024.txt
 
 Contains all real estate transactions in France.
 
-⸻
 
-2. Filter Antibes
+### 2. Filter Antibes
 
 Script:
 src/etl/filter_antibes.py
@@ -70,13 +67,12 @@ src/etl/filter_antibes.py
 Output:
 data/processed/antibes_2024.csv
 
-👉 Keeps only:
+Keeps only:
 	•	Transactions in Antibes
 	•	Relevant columns
 
-⸻
 
-3. Clean Dataset
+### 3. Clean Dataset
 
 Script:
 src/etl/clean_dataset.py
@@ -84,28 +80,26 @@ src/etl/clean_dataset.py
 Output:
 data/processed/antibes_2024_clean.csv
 
-👉 Performs:
+Performs:
 	•	Removal of invalid values
 	•	Cleaning of surfaces and prices
 	•	Creation of:
 	•	prix_m2 = valeur_fonciere / surface_reelle_bati
 
-⸻
 
-4. Descriptive Analysis
+### 4. Descriptive Analysis
 
 Scripts:
 	•	metrics_full.py → stats on raw filtered data
 	•	metrics_clean.py → stats on cleaned data
 
-👉 Examples:
+Examples:
 	•	Average price/m²
 	•	Median
 	•	Distribution
 
-⸻
 
-5. Rule-Based Investment Detection
+### 5. Rule-Based Investment Detection
 
 Script:
 src/analysis/top20_investments.py
@@ -113,15 +107,14 @@ src/analysis/top20_investments.py
 Output:
 data/processed/top20_antibes.csv
 
-👉 Logic:
+Logic:
 	•	Score based on simple heuristics (e.g. price/m² vs surface)
 	•	Returns top 20 “interesting” properties
 
-⚠️ Based only on past data (not predictive)
+Based only on past data (not predictive)
 
-⸻
 
-6. ML Dataset Preparation
+### 6. ML Dataset Preparation
 
 Script:
 src/features/prepare_ml.py
@@ -129,20 +122,20 @@ src/features/prepare_ml.py
 Output:
 data/processed/antibes_2024_ml.csv
 
-👉 Contains:
+Contains:
 	•	type_local (Appartement / Maison)
 	•	surface_reelle_bati
 	•	valeur_fonciere
 	•	prix_m2
 
-👉 Cleaned and ready for modeling
+Cleaned and ready for modeling
 
-7. Machine Learning Model
+### 7. Machine Learning Model
 
 Script:
 src/models/ml_top20.py
 
-👉 Steps:
+Steps:
 	1.	Load ML dataset
 	2.	Encode categorical variables (type_local)
 	3.	Train a Random Forest model to predict prix_m2
@@ -152,15 +145,15 @@ prix_m2_pred
 score = prix_m2 / prix_m2_pred
 
 
-📊 Investment Score Interpretation
+## Investment Score Interpretation
 
 Score       Meaning
-< 1         🔥 Underpriced (potential opportunity)
+< 1         Underpriced (potential opportunity)
 ≈ 1         Fair price
 > 1         Overpriced
 
 
-⚠️ Limitations
+## Limitations
 
 Current model uses only:
 	•	Property type
@@ -171,21 +164,19 @@ It does NOT include:
 	•	Property condition
 	•	Floor, view, etc.
 
-👉 Therefore:
+Therefore:
 	•	Results highlight anomalies
 	•	Not guaranteed “good deals”
 
-⸻
 
-🚀 Future Improvements
+## Future Improvements
 	•	Add location features (postal code, coordinates)
 	•	Estimate rental yield
 	•	Connect with real-time listings (Leboncoin, etc.)
 	•	Build API for querying properties
 
-⸻
 
-🧠 Key Insight
+## Key Insight
 
 This project evolves from:
 	•	Descriptive analytics → “what happened”
