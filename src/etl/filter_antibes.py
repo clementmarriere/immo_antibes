@@ -1,10 +1,12 @@
+# filter_antibes.py
+
 import pandas as pd
 from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).parents[2]
-INPUT_FILE = ROOT / "data/processed/full_dvf_2021_2025.csv"
-OUTPUT_FILE = ROOT / "data/processed/antibes_2021_2025.csv"
+INPUT_FILE = ROOT / "data/processed/full_dvf_2014_2025.csv"
+OUTPUT_FILE = ROOT / "data/processed/antibes_2014_2025.csv"
 
 TYPE_LOCAL_MAP = {
     "Local industriel. commercial ou assimilÃ©": "Local industriel. commercial ou assimilé",

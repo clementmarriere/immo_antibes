@@ -3,9 +3,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).parents[2]
 RAW_DIR = ROOT / "data/raw"
-OUTPUT_FILE = ROOT / "data/processed/full_dvf_2021_2025.csv"
+OUTPUT_FILE = ROOT / "data/processed/full_dvf_2014_2025.csv"
 
 TARGET_FILES = [
+    "valeursfoncieres-2014.txt",
+    "valeursfoncieres-2015.txt",
+    "valeursfoncieres-2016.txt",
+    "valeursfoncieres-2017.txt",
+    "valeursfoncieres-2018.txt",
+    "valeursfoncieres-2019.txt",
+    "valeursfoncieres-2020.txt",
     "ValeursFoncieres-2021.txt",
     "ValeursFoncieres-2022.txt",
     "ValeursFoncieres-2023.txt",
