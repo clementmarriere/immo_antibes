@@ -59,6 +59,8 @@ def main():
 
     # Top 20 meilleurs investissements (score le plus faible = sous-évalué)
     top20 = df.sort_values('score_investissement').head(20)
+    top20.to_csv("data/processed/top20_ml.csv", index=False)
+    print("\n Top 20 ML sauvegardé : data/processed/top20_ml.csv")
 
     print("\n🔥 ----- TOP 20 INVESTISSEMENTS ML ----- 🔥\n")
     for i, row in top20.iterrows():

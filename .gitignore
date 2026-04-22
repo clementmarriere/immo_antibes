@@ -1,2 +1,10 @@
+# Mac
+.DS_Store
+
+# Data lourde
 data/raw/
-data/processed/
+data/processed/*.csv
+
+# Python
+__pycache__/
+*.pyc
