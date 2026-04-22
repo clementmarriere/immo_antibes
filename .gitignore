@@ -19,3 +19,6 @@ __pycache__/
 venv/
 EOFreports/figures/
 reports/*.csv
+.DS_Store
+**/.DS_Store
+reports/figures/
