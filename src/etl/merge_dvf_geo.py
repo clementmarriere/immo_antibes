@@ -17,6 +17,8 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from shapely.geometry import Point, Polygon
+import json
+from shapely.geometry import shape
 
 # -- Chemins --
 ROOT       = Path(__file__).parents[2]
@@ -48,49 +50,21 @@ ANTIBES_FILES = [
 # -- Definition des quartiers (polygones GPS) --
 # IMPORTANT : ordre = priorite (zones specifiques avant generiques)
 
+with open("data/raw/map.geojson", "r") as f:
+    geojson = json.load(f)
+
+NOMS = [
+    "La Fontonne",
+    "Vieille Ville",
+    "Centre Ville",
+    "Cap d'Antibes",
+    "Juan-les-Pins",
+    "Antibes Nord Ouest",
+]
+
 QUARTIERS = {
-    # 🌴 1. OUEST SUD (Juan-les-Pins)
-    "Juan-les-Pins": Polygon([
-        (7.045, 43.545),
-        (7.100, 43.545),
-        (7.100, 43.575),
-        (7.045, 43.575),
-    ]),
-    # 🌊 2. SUD EST (Cap d’Antibes)
-    "Cap d'Antibes": Polygon([
-        (7.100, 43.520),
-        (7.155, 43.520),
-        (7.155, 43.575),
-        (7.100, 43.575),
-    ]),
-    # 🏰 3. CENTRE OUEST (centre + ouest urbain)
-    "Centre Ouest": Polygon([
-        (7.045, 43.575),
-        (7.100, 43.575),
-        (7.100, 43.615),
-        (7.045, 43.615),
-    ]),
-    # 🏙️ 4. CENTRE EST (Vieil Antibes + port + est urbain)
-    "Centre Est": Polygon([
-        (7.100, 43.575),
-        (7.155, 43.575),
-        (7.155, 43.615),
-        (7.100, 43.615),
-    ]),
-    # 🌳 5. NORD OUEST (résidentiel)
-    "Antibes Nord Ouest": Polygon([
-        (7.045, 43.615),
-        (7.100, 43.615),
-        (7.100, 43.660),
-        (7.045, 43.660),
-    ]),
-    # 💻 6. NORD EST (Sophia Antipolis / flux travail)
-    "Antibes Nord Est": Polygon([
-        (7.100, 43.615),
-        (7.155, 43.615),
-        (7.155, 43.660),
-        (7.100, 43.660),
-    ]),
+    NOMS[i]: shape(feature["geometry"])
+    for i, feature in enumerate(geojson["features"])
 }
 
 
