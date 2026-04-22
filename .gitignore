@@ -5,6 +5,16 @@
 data/raw/
 data/processed/*.csv
 
+# Données générées
+data/features/
+data/processed/
+models/
+
 # Python
 __pycache__/
 *.pyc
+
+# Environnement
+.env
+venv/
+EOF
