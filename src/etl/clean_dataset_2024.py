@@ -1,4 +1,4 @@
-# ⚠️ LEGACY SCRIPT
+# LEGACY SCRIPT
 # Used for initial 2024 analysis (non time-series)
 # Not used in current Deep Learning pipeline
 
