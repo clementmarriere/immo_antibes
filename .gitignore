@@ -17,4 +17,5 @@ __pycache__/
 # Environnement
 .env
 venv/
-EOF
+EOFreports/figures/
+reports/*.csv
