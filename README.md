@@ -187,7 +187,7 @@ Scripts de la phase d'exploration initiale sur les données 2024 uniquement. Non
 
 ## 📁 Données sources
 
-- DVF brutes : [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/demandes-de-valeurs-foncieres/)
+- DVF brutes : [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/demandes-de-valeurs-foncieres/), [data.cquest.org](data.cquest.org/dgfip_dvf/)
 - DVF géolocalisées : [files.data.gouv.fr/geo-dvf](https://files.data.gouv.fr/geo-dvf/latest/csv/)
 
 > Les fichiers de données bruts ne sont pas inclus dans ce dépôt (taille > 1 Go).
