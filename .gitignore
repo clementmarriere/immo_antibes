@@ -8,7 +8,7 @@ data/processed/*.csv
 # Données générées
 data/features/
 data/processed/
-models/
+/models/
 
 # Python
 __pycache__/
