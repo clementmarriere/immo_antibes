@@ -35,12 +35,15 @@ immo_antibes/
 │   │   ├── cv_lstm.py              # TimeSeriesSplit 5-fold + IC sur métriques (LSTM seul)
 │   │   ├── cv_compare.py           # CV comparative LSTM / GRU / Transformer / MovAvg
 │   │   ├── lstm_geo.py             # 6 LSTM indépendants (un par quartier)
-│   │   └── forecast_geo.py         # Forecast récursif 12 mois 2026 par quartier + MC Dropout
+│   │   ├── forecast_geo.py         # Forecast récursif 12 mois 2026 par quartier + MC Dropout
+│   │   ├── transformer_geo.py      # 6 Transformers indépendants par quartier
+│   │   └── forecast_transformer_geo.py  # Forecast Transformer 2026 par quartier
 │   ├── analysis/
 │   │   ├── eda.py                  # Analyse exploratoire (tendances, saisonnalité, YoY)
 │   │   ├── plot_results.py         # Courbes de loss, prédictions vs réalité, résidus
 │   │   ├── heatmap.py              # Carte thermique et trajectoires par quartier (historique)
-│   │   └── heatmap_forecast.py     # Carte thermique prédictive 2026 + trajectoires forecast
+│   │   ├── heatmap_forecast.py     # Carte thermique prédictive 2026 (LSTM)
+│   │   └── heatmap_forecast_compare.py  # Heatmap + barplot LSTM vs Transformer 2026
 │   └── scoring/
 │       └── score.py                # Score de Dynamique mensuel par seuils
 ├── models/                         # Poids sauvegardés (.keras) — ignoré par git
@@ -70,8 +73,11 @@ DVF géolocalisées (2014-2025)
       ↓  heatmap.py                 → Carte thermique + trajectoires 2014-2025
       ↓  build_features_geo.py      → 6 datasets indépendants par quartier
       ↓  lstm_geo.py                → 6 LSTM entraînés (un par zone)
-      ↓  forecast_geo.py            → Forecast 2026 par quartier + IC MC Dropout
-      ↓  heatmap_forecast.py        → Carte thermique prédictive 2026
+      ↓  forecast_geo.py            → Forecast LSTM 2026 par quartier + IC MC Dropout
+      ↓  transformer_geo.py         → 6 Transformers entraînés (un par zone)
+      ↓  forecast_transformer_geo   → Forecast Transformer 2026 par quartier
+      ↓  heatmap_forecast.py        → Carte thermique prédictive 2026 (LSTM)
+      ↓  heatmap_forecast_compare   → Heatmap + barplot LSTM vs Transformer
 ```
 
 ---
@@ -141,7 +147,22 @@ Le LSTM bat la moyenne mobile sur 3/6 quartiers. Les écarts importants sur Cap 
 | La Fontonne | −11.9% |
 | Cap d'Antibes | −19.2% |
 
-Les baisses prédites sur Cap d'Antibes et Vieille Ville reflètent davantage des **artefacts du modèle** (régression vers la moyenne pour Cap d'Antibes dont déc 2025 = pic local à 7286 €/m² ; drift du forecast récursif visible sur Vieille Ville à partir de septembre 2026) qu'un signal de marché. Détails dans le rapport § 4.5.
+Les baisses prédites sur Cap d'Antibes et Vieille Ville reflètent davantage des **artefacts du modèle** (régression vers la moyenne pour Cap d'Antibes dont déc 2025 = pic local à 7286 €/m² ; drift du forecast récursif visible sur Vieille Ville à partir de septembre 2026) qu'un signal de marché. Détails dans le rapport § 4.6.
+
+### Forecast 2026 par quartier — comparaison LSTM vs Transformer
+
+Le Transformer (qui survit nettement mieux au choc BCE 2023 — voir CV § 4.2) a aussi été appliqué par quartier. Les prédictions divergent sensiblement :
+
+| Quartier | LSTM | Transformer | Écart |
+|---|---|---|---|
+| Vieille Ville | −0.8% | **+37.1%** | **+38 pts** |
+| Centre Ville | +8.8% | +7.1% | −2 pts |
+| La Fontonne | −11.9% | **+4.6%** | **+17 pts** |
+| Juan-les-Pins | −6.3% | −1.2% | +5 pts |
+| Cap d'Antibes | −19.2% | −1.9% | **+17 pts** |
+| Antibes Nord Ouest | +2.1% | −0.5% | −3 pts |
+
+Le Transformer est **systématiquement plus optimiste** que le LSTM (sauf Centre Ville et Antibes Nord Ouest où l'écart est faible). Sur Vieille Ville, les deux modèles diffèrent de **38 points** — illustration spectaculaire de la **sensibilité du forecast au choix d'architecture**, et argument pour considérer un ensemble plutôt qu'un modèle unique en production.
 
 ### Évolution des prix par quartier (2014 → 2025)
 
@@ -249,6 +270,8 @@ python src/analysis/heatmap_forecast.py
 | **12** | **`12_trajectoires_forecast_2026.png`** | **Trajectoires forecast par quartier + IC** |
 | **13** | **`13_timeseries_cv.png`** | **Cross-validation TimeSeriesSplit — MAE par fold + IC sur métriques** |
 | **14** | **`14_cv_compare.png`** | **Comparaison LSTM / GRU / Transformer / MovAvg sur 5 folds** |
+| **15** | **`15_heatmap_forecast_compare.png`** | **Heatmap forecast 2026 LSTM vs Transformer côte à côte** |
+| **16** | **`16_growth_2026_compare.png`** | **Croissance moyenne 2026 par quartier — barplot LSTM vs Transformer** |
 
 ---
 
