@@ -34,6 +34,7 @@ immo_antibes/
 │   │   ├── transformer.py          # Encoder Transformer avec attention multi-tête
 │   │   ├── cv_lstm.py              # TimeSeriesSplit 5-fold + IC sur métriques (LSTM seul)
 │   │   ├── cv_compare.py           # CV comparative LSTM / GRU / Transformer / MovAvg
+│   │   ├── cv_ensemble.py          # Ensemble (mean / median / NNLS) vs modèles de base
 │   │   ├── lstm_geo.py             # 6 LSTM indépendants (un par quartier)
 │   │   ├── forecast_geo.py         # Forecast récursif 12 mois 2026 par quartier + MC Dropout
 │   │   ├── transformer_geo.py      # 6 Transformers indépendants par quartier
@@ -114,6 +115,20 @@ Le LSTM ne bat pas la moyenne mobile sur ce jeu de test — résultat attendu av
 | F3 | 2023 (choc BCE) | 603 | 566 | **313** | 303 |
 | F4 | 2024 | 353 | 332 | 258 | **220** |
 | F5 | 2025 | 260 | 220 | **135** | 156 |
+
+### Ensembles : peut-on combiner les architectures ?
+
+Trois stratégies d'ensemble testées sur les mêmes 5 folds (chaque modèle prédit sur le test, on combine) :
+
+| Stratégie | MAE (mean ± std) | Position |
+|---|---|---|
+| **MovAvg(k=3)** | **243 ± 60 €/m²** | 🥇 1er global |
+| **Ensemble_median** | **265 ± 82 €/m²** | 🥈 2e — bat tous les modèles deep individuels |
+| Ensemble_mean | 267 ± 81 €/m² | 🥉 3e |
+| Transformer | 323 ± 175 €/m² | 4e |
+| Ensemble_NNLS | 338 ± 161 €/m² | 5e — overfit sur val (n=12 trop petit) |
+
+**Conclusion clé** : sur le fold 2025 (le plus récent, donc avec le plus d'historique), **Ensemble_median MAE=140 < MovAvg=156** — l'ensemble bat enfin le baseline. Sur la moyenne des 5 folds, MovAvg garde une avance étroite (243 vs 265, +9%). Les ensembles **réduisent significativement la variance** (std 82 vs 138-175 pour les modèles individuels) — propriété attendue d'un mélange de prédictions partiellement décorrélées.
 
 **Quatre enseignements clés** :
 - **L'architecture compte plus que la profondeur** : le Transformer bat LSTM et GRU avec **3.5× moins de paramètres**
@@ -272,6 +287,7 @@ python src/analysis/heatmap_forecast.py
 | **14** | **`14_cv_compare.png`** | **Comparaison LSTM / GRU / Transformer / MovAvg sur 5 folds** |
 | **15** | **`15_heatmap_forecast_compare.png`** | **Heatmap forecast 2026 LSTM vs Transformer côte à côte** |
 | **16** | **`16_growth_2026_compare.png`** | **Croissance moyenne 2026 par quartier — barplot LSTM vs Transformer** |
+| **17** | **`17_cv_ensemble.png`** | **CV ensemble (mean/median/NNLS) vs modèles de base** |
 
 ---
 
