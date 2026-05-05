@@ -30,6 +30,7 @@ immo_antibes/
 │   │   └── build_features_geo.py   # Idem mais par quartier (6 datasets indépendants)
 │   ├── models/
 │   │   ├── lstm.py                 # LSTM + MLP + baseline Moyenne Mobile + évaluation
+│   │   ├── cv_lstm.py              # TimeSeriesSplit 5-fold + IC sur métriques
 │   │   ├── lstm_geo.py             # 6 LSTM indépendants (un par quartier)
 │   │   └── forecast_geo.py         # Forecast récursif 12 mois 2026 par quartier + MC Dropout
 │   ├── analysis/
@@ -83,6 +84,20 @@ DVF géolocalisées (2014-2025)
 | MLP | 860 €/m² | 900 €/m² | 16.3% |
 
 Le LSTM ne bat pas la moyenne mobile sur ce jeu de test — résultat attendu avec 88 fenêtres d'entraînement et un signal très auto-corrélé. Le MLP confirme l'importance de la structure temporelle.
+
+### Cross-validation temporelle (TimeSeriesSplit, 5 folds × 12 mois)
+
+L'évaluation sur un seul test set (11 mois) est bruitée. Une cross-validation TimeSeriesSplit avec 5 folds glissants (2021, 2022, 2023, 2024, 2025) donne des **intervalles de confiance sur les métriques** :
+
+| Modèle | MAE (mean ± std) | RMSE (mean ± std) | MAPE (mean ± std) |
+|---|---|---|---|
+| **MovAvg(k=3)** | **243 ± 60 €/m²** | **289 ± 68 €/m²** | **4.87 ± 1.27%** |
+| LSTM | 359 ± 146 €/m² | 427 ± 153 €/m² | 6.93 ± 2.66% |
+
+**Trois enseignements** :
+- **MovAvg bat LSTM sur 4/5 folds** — l'écart est plus important qu'estimé sur le single test set
+- **LSTM 2.4× plus instable** (std 146 vs 60) — la performance dépend fortement de l'année testée
+- **Fold 2023 catastrophique pour LSTM** (MAE=603) → coïncide avec la hausse BCE 0% → 4%, confirmant le concept drift documenté
 
 ### Modélisation par quartier (LSTM zone-spécifique)
 
@@ -191,6 +206,9 @@ python src/analysis/heatmap.py
 # Score de Dynamique
 python src/scoring/score.py
 
+# Cross-validation temporelle
+python src/models/cv_lstm.py
+
 # Modélisation par quartier
 python src/features/build_features_geo.py
 python src/models/lstm_geo.py
@@ -208,6 +226,7 @@ python src/analysis/heatmap_forecast.py
 | 10 | `10_forecast_2026.png` | Forecast LSTM global jan-déc 2026 + IC MC Dropout |
 | **11** | **`11_heatmap_forecast_2026.png`** | **Carte thermique prédictive 2026 par quartier** |
 | **12** | **`12_trajectoires_forecast_2026.png`** | **Trajectoires forecast par quartier + IC** |
+| **13** | **`13_timeseries_cv.png`** | **Cross-validation TimeSeriesSplit — MAE par fold + IC sur métriques** |
 
 ---
 
