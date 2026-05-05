@@ -99,6 +99,16 @@ Le LSTM ne bat pas la moyenne mobile sur ce jeu de test — résultat attendu av
 | GRU | 23 777 | 340 ± 139 €/m² | 396 ± 154 €/m² | 6.6 ± 2.5% |
 | LSTM | 31 137 | 360 ± 146 €/m² | 427 ± 153 €/m² | 6.9 ± 2.7% |
 
+**MAE par fold (lecture détaillée)** :
+
+| Fold | Test | LSTM | GRU | Transformer | MovAvg |
+|---|---|---|---|---|---|
+| F1 | 2021 | 234 | 234 | 300 | 243 |
+| F2 | 2022 | 347 | 346 | 610 | **293** |
+| F3 | 2023 (choc BCE) | 603 | 566 | **313** | 303 |
+| F4 | 2024 | 353 | 332 | 258 | **220** |
+| F5 | 2025 | 260 | 220 | **135** | 156 |
+
 **Quatre enseignements clés** :
 - **L'architecture compte plus que la profondeur** : le Transformer bat LSTM et GRU avec **3.5× moins de paramètres**
 - **Transformer = premier modèle deep à battre MovAvg sur un fold** : sur 2025 (fold 5), MAE=135 €/m² < MovAvg=156 €/m²
