@@ -30,7 +30,10 @@ immo_antibes/
 │   │   └── build_features_geo.py   # Idem mais par quartier (6 datasets indépendants)
 │   ├── models/
 │   │   ├── lstm.py                 # LSTM + MLP + baseline Moyenne Mobile + évaluation
-│   │   ├── cv_lstm.py              # TimeSeriesSplit 5-fold + IC sur métriques
+│   │   ├── gru.py                  # GRU(64,32) — variante allégée du LSTM
+│   │   ├── transformer.py          # Encoder Transformer avec attention multi-tête
+│   │   ├── cv_lstm.py              # TimeSeriesSplit 5-fold + IC sur métriques (LSTM seul)
+│   │   ├── cv_compare.py           # CV comparative LSTM / GRU / Transformer / MovAvg
 │   │   ├── lstm_geo.py             # 6 LSTM indépendants (un par quartier)
 │   │   └── forecast_geo.py         # Forecast récursif 12 mois 2026 par quartier + MC Dropout
 │   ├── analysis/
@@ -85,19 +88,22 @@ DVF géolocalisées (2014-2025)
 
 Le LSTM ne bat pas la moyenne mobile sur ce jeu de test — résultat attendu avec 88 fenêtres d'entraînement et un signal très auto-corrélé. Le MLP confirme l'importance de la structure temporelle.
 
-### Cross-validation temporelle (TimeSeriesSplit, 5 folds × 12 mois)
+### Cross-validation temporelle — comparaison de 4 architectures
 
-L'évaluation sur un seul test set (11 mois) est bruitée. Une cross-validation TimeSeriesSplit avec 5 folds glissants (2021, 2022, 2023, 2024, 2025) donne des **intervalles de confiance sur les métriques** :
+Évaluation sur 5 folds glissants TimeSeriesSplit (test = 12 mois : 2021, 2022, 2023, 2024, 2025), hyperparams identiques pour les 3 modèles deep (epochs ≤ 200, patience 20, seed 42).
 
-| Modèle | MAE (mean ± std) | RMSE (mean ± std) | MAPE (mean ± std) |
-|---|---|---|---|
-| **MovAvg(k=3)** | **243 ± 60 €/m²** | **289 ± 68 €/m²** | **4.87 ± 1.27%** |
-| LSTM | 359 ± 146 €/m² | 427 ± 153 €/m² | 6.93 ± 2.66% |
+| Modèle | Paramètres | MAE (mean ± std) | RMSE (mean ± std) | MAPE (mean ± std) |
+|---|---|---|---|---|
+| **MovAvg(k=3)** | — | **243 ± 60 €/m²** | **289 ± 68 €/m²** | **4.87 ± 1.27%** |
+| **Transformer** | **8 801** | **323 ± 175 €/m²** | **379 ± 187 €/m²** | **6.4 ± 3.6%** |
+| GRU | 23 777 | 340 ± 139 €/m² | 396 ± 154 €/m² | 6.6 ± 2.5% |
+| LSTM | 31 137 | 360 ± 146 €/m² | 427 ± 153 €/m² | 6.9 ± 2.7% |
 
-**Trois enseignements** :
-- **MovAvg bat LSTM sur 4/5 folds** — l'écart est plus important qu'estimé sur le single test set
-- **LSTM 2.4× plus instable** (std 146 vs 60) — la performance dépend fortement de l'année testée
-- **Fold 2023 catastrophique pour LSTM** (MAE=603) → coïncide avec la hausse BCE 0% → 4%, confirmant le concept drift documenté
+**Quatre enseignements clés** :
+- **L'architecture compte plus que la profondeur** : le Transformer bat LSTM et GRU avec **3.5× moins de paramètres**
+- **Transformer = premier modèle deep à battre MovAvg sur un fold** : sur 2025 (fold 5), MAE=135 €/m² < MovAvg=156 €/m²
+- **Transformer survit au choc BCE 2023** (MAE=313) là où LSTM (603) et GRU (566) s'effondrent → l'attention multi-tête généralise mieux à un régime de marché différent
+- **MovAvg reste compétitif** par sa stabilité (std=60 contre 139-175 pour les modèles deep) → confirme la difficulté du Deep Learning sur séries courtes (Makridakis 2018)
 
 ### Modélisation par quartier (LSTM zone-spécifique)
 
@@ -206,8 +212,13 @@ python src/analysis/heatmap.py
 # Score de Dynamique
 python src/scoring/score.py
 
-# Cross-validation temporelle
+# Modèles alternatifs (GRU, Transformer)
+python src/models/gru.py
+python src/models/transformer.py
+
+# Cross-validation temporelle (LSTM seul, ou comparaison 4 modèles)
 python src/models/cv_lstm.py
+python src/models/cv_compare.py
 
 # Modélisation par quartier
 python src/features/build_features_geo.py
@@ -227,6 +238,7 @@ python src/analysis/heatmap_forecast.py
 | **11** | **`11_heatmap_forecast_2026.png`** | **Carte thermique prédictive 2026 par quartier** |
 | **12** | **`12_trajectoires_forecast_2026.png`** | **Trajectoires forecast par quartier + IC** |
 | **13** | **`13_timeseries_cv.png`** | **Cross-validation TimeSeriesSplit — MAE par fold + IC sur métriques** |
+| **14** | **`14_cv_compare.png`** | **Comparaison LSTM / GRU / Transformer / MovAvg sur 5 folds** |
 
 ---
 
