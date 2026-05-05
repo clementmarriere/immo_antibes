@@ -194,6 +194,9 @@ Scripts de la phase d'exploration initiale sur les données 2024 uniquement. Non
 
 ---
 
-## ✍️ Auteur
+## ✍️ Auteurs
 
-Clément Marrière — Projet Deep Learning, 2026
+Clément Marrière
+Dimitri Gardarin
+
+— Projet Deep Learning, 2026
