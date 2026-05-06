@@ -1,14 +1,18 @@
 # 🏡 Real Estate Forecasting — Antibes
 
-> Prédiction de la dynamique du marché immobilier à Antibes par Deep Learning (LSTM) à partir des données DVF 2014-2025.
+> Benchmark de 4 architectures de prédiction (LSTM, GRU, Transformer, Moyenne Mobile) sur le marché immobilier d'Antibes (DVF 2014-2025), avec ensembles, modélisation par quartier et carte thermique prédictive 2026.
 
 ---
 
 ## 📌 Objectif
 
-Ce projet explore l'utilisation des réseaux de neurones récurrents pour modéliser l'évolution temporelle des prix immobiliers à Antibes. À partir de la base DVF (Demandes de Valeurs Foncières), nous construisons une série temporelle mensuelle et entraînons un modèle LSTM pour anticiper les cycles du marché à un horizon de 12 mois.
+Ce projet teste empiriquement la valeur ajoutée du Deep Learning sur une série temporelle immobilière courte (~140 mois), en comparant **3 architectures neuronales** (LSTM, GRU, Transformer encoder) à une **baseline statistique** (moyenne mobile). À partir de la base DVF (Demandes de Valeurs Foncières), nous construisons une série temporelle mensuelle pour Antibes et benchmark chaque modèle sous **cross-validation temporelle** (5 folds glissants couvrant 2021–2025), avec des stratégies d'**ensemble** (mean, median, NNLS) pour exploiter conjointement les architectures.
 
-Un **Score de Dynamique** est calculé en comparant les prix prédits aux prix actuels, permettant d'identifier mathématiquement les quartiers en phase d'accélération ou de ralentissement.
+Trois angles d'analyse complètent le benchmark :
+
+- **Modélisation par quartier** : 6 LSTM + 6 Transformers entraînés indépendamment sur les DVF géolocalisées, produisant une carte thermique prédictive du marché 2026 par zone.
+- **Score de Dynamique** : indicateur mensuel comparant prix prédit et prix actuel, robuste au biais systématique des modèles, pour détecter les phases d'accélération ou de ralentissement.
+- **Negative result méthodologique** : intégration de variables macro-économiques (taux BCE, OAT, inflation) testée puis abandonnée — concept drift démontré sur le test set post-2022.
 
 ---
 
@@ -192,23 +196,46 @@ Le Transformer est **systématiquement plus optimiste** que le LSTM (sauf Centre
 
 ---
 
-## 🧠 Architecture LSTM
+## 🧠 Architectures comparées
 
+Trois modèles deep + une baseline statistique, **mêmes hyperparams d'entraînement** (Adam lr=1e-3, batch=16, patience=20, epochs ≤ 200, seed=42) pour que la comparaison reflète l'architecture et non le tuning.
+
+### LSTM (31 137 params)
 ```
-Input (12, 6)
-  └─ LSTM(64, return_sequences=True)
-  └─ Dropout(0.2)
-  └─ LSTM(32)
-  └─ Dropout(0.2)
-  └─ Dense(16, relu)
-  └─ Dense(1)          ← prix_m2_median normalisé
+Input(12, 6) → LSTM(64, return_sequences=True) → Dropout(0.2)
+             → LSTM(32) → Dropout(0.2)
+             → Dense(16, relu) → Dense(1)
 ```
 
-**Features** : `prix_m2_median`, `volume`, `surface_median`, `nb_pieces_median`, `mois_sin`, `mois_cos`
+### GRU (23 777 params)
+Architecture symétrique au LSTM mais avec couches GRU (variante allégée, ~25% de params en moins).
+```
+Input(12, 6) → GRU(64, return_sequences=True) → Dropout(0.2)
+             → GRU(32) → Dropout(0.2)
+             → Dense(16, relu) → Dense(1)
+```
 
-**Split** : 70% train / 15% val / 15% test (chronologique, sans shuffle)
+### Transformer encoder (8 801 params)
+Inspiré de Vaswani et al. 2017, simplifié pour série temporelle courte.
+```
+Input(12, 6) → Dense(d_model=32) + Positional Encoding sinusoïdal
+             → MultiHeadAttention(heads=4, key_dim=8) (résiduel + LayerNorm)
+             → FFN: Dense(64, relu) → Dropout → Dense(32) (résiduel + LayerNorm)
+             → GlobalAveragePooling1D → Dense(1)
+```
 
-**Callbacks** : EarlyStopping (patience=20) + ReduceLROnPlateau (patience=10) + ModelCheckpoint
+### Baselines
+- **Moyenne Mobile k=3** : prédit le mois suivant comme la moyenne des 3 derniers mois normalisés. Référence à battre.
+- **MLP** (uniquement § Métriques sur le test set) : flatten + 3 couches denses, sert à prouver l'utilité de la structure temporelle.
+
+### Stratégies d'ensemble
+- **Ensemble_mean** : moyenne équipondérée des 4 modèles (LSTM + GRU + Transformer + MovAvg)
+- **Ensemble_median** : médiane (robuste aux prédictions extrêmes)
+- **Ensemble_NNLS** : poids non-négatifs appris sur le val set (Non-Negative Least Squares)
+
+**Features (6)** : `prix_m2_median`, `volume`, `surface_median`, `nb_pieces_median`, `mois_sin`, `mois_cos`
+
+**Split** : 70/15/15 chronologique (single test set) ou TimeSeriesSplit 5 folds (CV) — sans shuffle
 
 ---
 
@@ -238,39 +265,41 @@ pip install pandas numpy scikit-learn tensorflow matplotlib geopandas shapely
 ### Reproduire le pipeline complet
 
 ```bash
-# ETL
+# ── 1. ETL ───────────────────────────────────────────────
 python src/etl/merge_dvf.py
 python src/etl/filter_antibes.py
 python src/etl/aggregate_monthly.py
 python src/etl/merge_dvf_geo.py
 
-# Features
+# ── 2. Features (global + par quartier) ──────────────────
 python src/features/build_features.py
+python src/features/build_features_geo.py
 
-# Modèle
+# ── 3. Modèles (single test set) ─────────────────────────
 python src/models/lstm.py
-
-# Visualisations
-python src/analysis/eda.py
-python src/analysis/plot_results.py
-python src/analysis/heatmap.py
-
-# Score de Dynamique
-python src/scoring/score.py
-
-# Modèles alternatifs (GRU, Transformer)
 python src/models/gru.py
 python src/models/transformer.py
 
-# Cross-validation temporelle (LSTM seul, ou comparaison 4 modèles)
-python src/models/cv_lstm.py
-python src/models/cv_compare.py
+# ── 4. Cross-validation temporelle ───────────────────────
+python src/models/cv_lstm.py        # LSTM seul, IC sur métriques
+python src/models/cv_compare.py     # comparaison 4 architectures
+python src/models/cv_ensemble.py    # ensembles mean/median/NNLS
 
-# Modélisation par quartier
-python src/features/build_features_geo.py
+# ── 5. Modélisation par quartier ─────────────────────────
 python src/models/lstm_geo.py
 python src/models/forecast_geo.py
+python src/models/transformer_geo.py
+python src/models/forecast_transformer_geo.py
+
+# ── 6. Score de Dynamique ────────────────────────────────
+python src/scoring/score.py
+
+# ── 7. Visualisations ────────────────────────────────────
+python src/analysis/eda.py
+python src/analysis/plot_results.py
+python src/analysis/heatmap.py
 python src/analysis/heatmap_forecast.py
+python src/analysis/heatmap_forecast_compare.py
 ```
 
 ### Figures générées (`reports/figures/`)
@@ -310,13 +339,13 @@ Scripts de la phase d'exploration initiale sur les données 2024 uniquement. Non
 
 ## 📉 Limites
 
-- **Volume** : 88 fenêtres d'entraînement — trop peu pour un LSTM profond
-- **Val set** : 9 fenêtres → signal de validation bruité, early stopping instable
-- **Variables exogènes absentes** : taux BCE, inflation, IPC — le modèle ne peut pas anticiper les chocs macro
-- **Type de bien** : appartements uniquement, pas de maisons ni locaux commerciaux
-- **Biais LSTM** : sous-estimation systématique de -174 €/m² sur le test set — le Score de Dynamique doit être interprété avec cette limite en tête
-- **Forecast récursif** : l'erreur s'accumule à chaque pas, visible sur Vieille Ville après le mois 8 du forecast 2026 — motive l'investigation d'une architecture Seq2Seq directe
-- **Régression vers la moyenne** : le LSTM ramène les quartiers à pic local (Cap d'Antibes déc 2025 = 7286 €/m² vs moyenne historique 5500 €/m²) vers leur moyenne d'entraînement, produisant des baisses prédites qui ne reflètent pas le marché
+- **Taille du dataset** : 144 mois (~88 fenêtres train, 12 par fold CV) — limite inférieure pour entraîner des modèles profonds. Confirmé par Makridakis 2018 : sur séries courtes, les baselines statistiques (MovAvg) restent compétitives.
+- **Variables exogènes absentes** : taux BCE, inflation, IPC — testées puis abandonnées (concept drift, cf. § 3.4 du rapport). Aucun modèle ne peut anticiper un changement de régime sans signal exogène valide.
+- **Type de bien** : appartements uniquement, pas de maisons ni locaux commerciaux.
+- **Forecast récursif** : l'erreur s'accumule à chaque pas, visible sur Vieille Ville (LSTM) après le mois 8 du forecast 2026. Une architecture **Seq2Seq directe** (prédiction multi-step) éviterait cette dérive.
+- **Régression vers la moyenne** : LSTM/GRU optimisés sur MSE ramènent mécaniquement les quartiers à pic local (Cap d'Antibes déc 2025 = 7286 €/m² vs moyenne historique 5500 €/m²) vers la moyenne d'entraînement. Le Transformer y est moins sensible (cf. comparaison §4.6 du rapport).
+- **Sensibilité au choix d'architecture** : sur Vieille Ville, LSTM prédit −0.8% en 2026 et Transformer +37.1% — un écart de 38 points qui justifie l'usage d'ensembles plutôt que d'un modèle unique en production.
+- **MovAvg reste le meilleur sur la moyenne CV** : MAE 243 ± 60 €/m², légèrement devant Ensemble_median (265 ± 82). Sur le fold 2025, l'ensemble bat enfin la baseline (140 vs 156) — l'avantage du DL apparaît seulement quand l'historique d'entraînement est suffisant.
 
 ---
 
