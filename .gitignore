@@ -1,13 +1,13 @@
 # Mac
 .DS_Store
+**/.DS_Store
 
 # Data lourde
 data/raw/
-data/processed/*.csv
+data/processed/
 
 # Données générées
 data/features/
-data/processed/
 /models/
 
 # Python
@@ -17,8 +17,12 @@ __pycache__/
 # Environnement
 .env
 venv/
-EOFreports/figures/
+
+# Reports : exporter uniquement les figures clés référencées dans le README
+reports/figures/*
+!reports/figures/11_heatmap_forecast_2026.png
+!reports/figures/14_cv_compare.png
+!reports/figures/15_heatmap_forecast_compare.png
+!reports/figures/16_growth_2026_compare.png
+!reports/figures/17_cv_ensemble.png
 reports/*.csv
-.DS_Store
-**/.DS_Store
-reports/figures/
