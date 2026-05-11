@@ -178,7 +178,6 @@ Toutes les figures sont générées dans `reports/figures/`. Seules **5 figures 
 
 ## ✍️ Auteurs
 
-Clément Marrière
-Dimitri Gardarin
+Clément Marrière - Dimitri Gardarin
 
 — Projet Deep Learning, 2026
