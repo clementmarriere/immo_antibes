@@ -1,3 +1,4 @@
+import sys
 import pandas as pd
 from pathlib import Path
 
@@ -46,6 +47,13 @@ def main():
             dfs.append(load_txt(file))
         except Exception as e:
             print(f"❌ Error {fname}: {e}")
+
+    if not dfs:
+        sys.exit(
+            f"\n❌ No DVF source files found in {RAW_DIR}.\n"
+            "   Download the raw DVF files and place them in data/raw/ "
+            "(see README → Quickstart for filenames and download links)."
+        )
 
     print("\n🔄 Concatenating...")
     full_df = pd.concat(dfs, ignore_index=True)

@@ -134,7 +134,23 @@ make geo        # district models + 2026 forecasts (LSTM + Transformer)
 make analysis   # all figures → reports/figures/
 ```
 
-> Raw DVF files are not included in this repo (>1 GB). Download from [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/demandes-de-valeurs-foncieres/) and [files.data.gouv.fr/geo-dvf](https://files.data.gouv.fr/geo-dvf/latest/csv/), then place them in `data/raw/`.
+### Raw data setup
+
+Raw DVF files are not included in this repo (>1 GB). Download them from [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/demandes-de-valeurs-foncieres/) and [files.data.gouv.fr/geo-dvf](https://files.data.gouv.fr/geo-dvf/latest/csv/), then place them in `data/raw/` with **these exact filenames** (note the case change from 2021 onward):
+
+```
+data/raw/
+├── valeursfoncieres-2014.txt   ← lowercase for 2014–2020
+├── valeursfoncieres-2015.txt
+├── ...
+├── valeursfoncieres-2020.txt
+├── ValeursFoncieres-2021.txt   ← CamelCase for 2021–2025
+├── ValeursFoncieres-2022.txt
+├── ...
+└── ValeursFoncieres-2025.txt
+```
+
+`make etl` exits with a clear message if any of these are missing.
 
 All figures are generated in `reports/figures/`. Only **6 key figures** are versioned on GitHub (EDA, 11, 14, 15, 16, 17); others are regenerated locally.
 
