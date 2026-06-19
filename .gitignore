@@ -20,6 +20,7 @@ venv/
 
 # Reports : exporter uniquement les figures clés référencées dans le README
 reports/figures/*
+!reports/figures/eda_antibes_appartements.png
 !reports/figures/11_heatmap_forecast_2026.png
 !reports/figures/14_cv_compare.png
 !reports/figures/15_heatmap_forecast_compare.png
